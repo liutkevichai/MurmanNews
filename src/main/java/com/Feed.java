@@ -2,6 +2,7 @@ package com;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -39,12 +40,18 @@ public class Feed extends HttpServlet {
 		
 		User user = (User) request.getSession().getAttribute("user");
 		
-		dbFunctions DB = new dbFunctions();
-		Connection conn = DB.connectToDB();
-		
 		if ( request.getRequestURI().equals( request.getContextPath() + "/feed") ) {
 			
+			dbFunctions DB = new dbFunctions();
+			Connection conn = DB.connectToDB();
+			
 			ArrayList<Article> reversedArticles = DB.getArticlesReversed(conn);
+			
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 
 	    	request.setAttribute("reversedArticles", reversedArticles);
 	    	request.setAttribute("URI", request.getRequestURI());
@@ -54,19 +61,29 @@ public class Feed extends HttpServlet {
 		} else  if ( request.getRequestURI().equals( request.getContextPath() + "/post") && 
 				user != null && user.getRole().equals("автор")) {
 			
-				request.getRequestDispatcher("/article_posting.jsp").forward(request, response);
+			request.getRequestDispatcher("/article_posting.jsp").forward(request, response);
 			
 		} else  if ( Pattern.matches(request.getContextPath() + "/feed/\\d+$", request.getRequestURI()) ) {
 			
 			if ( request.getParameter("delete") != null ) {
+				
 				doDelete(request, response);
 				
 			} else {
 				try {
 					Integer articleId = Integer.valueOf(PathProvider.getEndpoint(request, -1));
 					
+					dbFunctions DB = new dbFunctions();
+					Connection conn = DB.connectToDB();
+					
 					request.setAttribute("article", DB.getArticle(conn, articleId));
 					request.setAttribute("URI", request.getRequestURI());
+					
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
 					
 					request.getRequestDispatcher("/comments").forward(request, response);
 				
@@ -106,6 +123,12 @@ public class Feed extends HttpServlet {
 				
 				DB.createArticle(conn, author, title, contents, image);
 				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				response.sendRedirect(request.getContextPath() + "/feed");
 				
 			} else if ( Pattern.matches(request.getContextPath() + "/feed/\\d+$", request.getRequestURI()) ) {
@@ -144,6 +167,12 @@ public class Feed extends HttpServlet {
 			DB.updateArticle(conn, articleId, title, contents, image);
 		}
 		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		response.sendRedirect(request.getContextPath() + "/feed/" + articleId);
 	}
 	
@@ -171,6 +200,12 @@ public class Feed extends HttpServlet {
 		
 		if ( user.getUsername().equalsIgnoreCase(articleAuthor) ) {
 			DB.deleteArticle(conn, id);
+		}
+		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
 		response.sendRedirect(request.getContextPath() + "/feed");

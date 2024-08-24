@@ -2,6 +2,7 @@ package com;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.servlet.ServletException;
@@ -36,6 +37,12 @@ public class Home extends HttpServlet {
 		Connection conn = DB.connectToDB();
 		
 		ArrayList<Article> mainNews = DB.getArticlesReversedLimited(conn, 6);
+		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 		request.setAttribute("mainNews", mainNews);
     	request.setAttribute("URI", request.getRequestURI());

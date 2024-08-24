@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+
 import models.dbFunctions;
 import models.User;
 
@@ -65,11 +67,13 @@ public class Register extends HttpServlet {
 			String username = request.getParameter("username").stripTrailing();
 			String password = request.getParameter("password").stripTrailing();
 			String avatar = request.getParameter("avatar");
+			
 			if ( avatar != null ) { 
 				avatar.stripTrailing();
 			} else {
 				avatar = "https://i.imgur.com/DGgiYhO.png";
 			}
+			
 			String role = request.getParameter("role");
 			
 			dbFunctions DB = new dbFunctions();
@@ -77,26 +81,55 @@ public class Register extends HttpServlet {
 			
 			if ( DB.getUser(conn, username) != null ) {
 				request.setAttribute("regErrorMessage_name", "Данное имя пользователя занято: " + username);
+				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				request.getServletContext().getRequestDispatcher("/registration.jsp").forward(request, response);
 			
 			} else {
 				
 				if ( !Pattern.matches("^[A-Za-z0-9!@#$%^&*()_+\\-=\\[\\]{}|;:'\",.<>?/`~]{1,60}$", username) ) {
+					
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					
 					request.setAttribute("regErrorMessage_name", "Логин может содержать только латинские буквы, цифры и спецальные символы. Логин не может быть длинее 60 символов и включать пробелы.");		
 					request.getServletContext().getRequestDispatcher("/registration.jsp").forward(request, response);
 					
 				} else {
 				
 					if ( !Pattern.matches("^.{6,50}$", password) ) {
+						
+						try {
+							conn.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+						
 						request.setAttribute("regErrorMessage_pass", "Пароль должен содержать от 6 до 50 символов.");
 						request.getServletContext().getRequestDispatcher("/registration.jsp").forward(request, response);
 						
 					} else {
 						DB.createUser(conn, username, password, role, avatar);
+						
+						try {
+							conn.close();
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+						
 						request.getServletContext().getRequestDispatcher("/login").forward(request, response);	
 					}
 				}
 			}
+			
 		}
 
 	}
@@ -170,9 +203,23 @@ public class Register extends HttpServlet {
 			} else { params += param2; }
 			
 			if ( request.getAttribute("errorMessage_name") != null ) {
+				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				request.getServletContext().getRequestDispatcher("/profile.jsp").forward(request, response);
 				
 			} else {
+				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				response.sendRedirect(request.getContextPath() + "/profile/" + user.getUsername() + params);
 			}	
 			
@@ -183,16 +230,36 @@ public class Register extends HttpServlet {
 			if ( user.getPassword().equals(oldPassword) ) {
 				
 				if ( !Pattern.matches("^.{6,50}$", newPassword) ) {
+					
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					
 					request.setAttribute("errorMessage_newpass", "Пароль должен содержать от 6 до 50 символов.");
 					request.getServletContext().getRequestDispatcher("/profile.jsp").forward(request, response);
 					
 				} else { 
 					DB.updateUser(conn, user.getUsername(), null, null, newPassword);
 					
+					try {
+						conn.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					
 					response.sendRedirect(request.getContextPath() + "/profile/" + user.getUsername() + "?pw=y");
 				}
 				
 			} else { 
+				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				request.setAttribute("errorMessage_oldpass", "Старый пароль указан неверно.");
 				request.getServletContext().getRequestDispatcher("/profile.jsp").forward(request, response);
 			}

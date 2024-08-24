@@ -2,6 +2,7 @@ package com;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
@@ -49,6 +50,12 @@ public class Profile extends HttpServlet {
 					request.setAttribute("userArticles", DB.getUserArticles(conn, user.getUsername()));
 				}
 				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 				request.setAttribute("URI", request.getRequestURI());
 				
 				request.getServletContext().getRequestDispatcher("/profile.jsp").forward(request, response);
@@ -66,6 +73,12 @@ public class Profile extends HttpServlet {
     			
 				if ( profile.getRole().equals("автор") ) { 
 					request.setAttribute("userArticles", DB.getUserArticles(conn, profile.getUsername()));
+				}
+				
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
 				}
     			
     			request.setAttribute("URI", request.getRequestURI());
