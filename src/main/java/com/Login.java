@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+
 import models.dbFunctions;
 import models.User;
 
@@ -59,6 +61,12 @@ public class Login extends HttpServlet {
 		dbFunctions DB = new dbFunctions();
 		Connection conn = DB.connectToDB();
 		User user = DB.getUser(conn, username);
+		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		 
 		if ( user != null ) {
  

@@ -2,6 +2,7 @@ package com;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -51,6 +52,13 @@ public class Comments extends HttpServlet {
 				User user = DB.getUser(conn, comment.getAuthor());
 				commentators.put(comment.getId(), user);
 			}
+			
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
 			request.setAttribute("commentators", commentators);
 			
 			request.getServletContext().getRequestDispatcher("/article.jsp").forward(request, response);
@@ -77,6 +85,12 @@ public class Comments extends HttpServlet {
 		Connection conn = DB.connectToDB();
 		
 		DB.createComment(conn, author, articleId, comment);
+		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 		response.sendRedirect(request.getContextPath() + "/feed/" + articleId);
 	}
@@ -105,6 +119,12 @@ public class Comments extends HttpServlet {
 		
 		if ( user.getUsername().equalsIgnoreCase(commentAuthor) ) {
 			DB.deleteComment(conn, commId);
+		}
+		
+		try {
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
 		response.sendRedirect(request.getContextPath() + "/feed/" + comment.getArticleId());
