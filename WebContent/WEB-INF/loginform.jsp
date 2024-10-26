@@ -10,7 +10,7 @@
 	<input class="button" type="submit" value="Войти" />
 	<div class="errorMessage">
 		<% if ( request.getParameter("err") != null ) { %>
-			<p>Введен неверный пароль.<p/>
+			Введен неверный пароль.
 		<% } %>
 	</div>
 </form>
